@@ -23,7 +23,7 @@ Aplicación web para registrar y consultar las salidas y los regresos del person
 frontend/       Interfaz React
 backend/        API REST con Express
 database/       Esquema y scripts SQL
-docs/           Requisitos, reglas y arquitectura
+docs/           Requisitos, reglas, arquitectura y modelo de datos
 ```
 
 ## Requisitos previos
@@ -38,9 +38,10 @@ psql --version
 Cada aplicación tendrá su propio archivo .env local. No guardes contraseñas, claves ni otros secretos en Git.
 
 1. Configura PostgreSQL y crea una base de datos para desarrollo.
-2. Instala las dependencias del backend y configura sus variables de entorno.
-3. Instala las dependencias del frontend.
-4. Inicia backend y frontend en terminales separadas.
+2. Ejecuta el esquema inicial de `database/schema.sql` en esa base de datos.
+3. Instala las dependencias del backend y configura sus variables de entorno.
+4. Instala las dependencias del frontend.
+5. Inicia backend y frontend en terminales separadas.
 
 Los comandos concretos se documentarán al incorporar los archivos de configuración ejecutables.
 
@@ -52,6 +53,8 @@ Trabaja en ramas por funcionalidad y abre un Pull Request hacia main cuando los 
 - [Reglas de negocio](docs/reglas-negocio.md)
 - [Arquitectura](docs/arquitectura.md)
 - [Plan de trabajo](docs/plan-trabajo.md)
+- [Modelo de datos](docs/modelo-datos.md)
+- [Esquema SQL inicial](database/schema.sql)
 
 ## Seguridad y datos
 - Las contraseñas deberán almacenarse mediante hash seguro; nunca en texto plano.
