@@ -4,64 +4,59 @@
 
 - Node.js LTS y npm.
 - PostgreSQL instalado y en ejecución.
-- La base de datos de desarrollo creada y el esquema de `../database/schema.sql` aplicado.
+- Base de datos `vitagua_rutas` creada y el esquema de `../database/schema.sql` aplicado.
 
 ## Preparación local
 
-Los cambios de código se mantienen directamente en GitHub. Para ejecutar y probar la API en tu computadora, necesitas tener una copia de la carpeta `backend` en Windows; puedes descargar el repositorio como ZIP desde GitHub y extraerlo, sin editar los archivos localmente.
+Los cambios de código se mantienen directamente en GitHub. Para ejecutar y probar la API en Windows, descarga el ZIP actualizado del repositorio y extrae el proyecto. No necesitas editar localmente los archivos del código.
 
-Abre una terminal en la carpeta `backend`:
-
-```powershell
-npm install
-```
-
-Copia `.env.example` a `.env` y ajusta las credenciales de PostgreSQL:
+Desde PowerShell, dentro de la carpeta `backend`:
 
 ```powershell
+npm.cmd install
 Copy-Item .env.example .env
+notepad .env
 ```
 
-Abre el archivo `.env` local y establece la contraseña que usas para el usuario de PostgreSQL. Verifica también que `PGDATABASE=vitagua_rutas` coincida con la base creada en pgAdmin. No compartas ni subas el archivo `.env`.
+Configura las credenciales locales de PostgreSQL en `.env`. Configura también `JWT_SECRET` con una clave aleatoria privada de al menos 32 caracteres. No compartas ni subas el archivo `.env` a GitHub.
 
 ## Comprobar PostgreSQL
 
-Antes de iniciar el servidor, ejecuta:
-
 ```powershell
-npm run db:check
+npm.cmd run db:check
 ```
 
-La prueba verifica la conexión, identifica la base de datos y el usuario configurados, y confirma que existan las cuatro tablas iniciales: `usuario`, `trabajador`, `ruta` y `recorrido`.
+La prueba debe mostrar `Esquema inicial: completo` y confirmar la conexión con PostgreSQL.
 
-Si la prueba termina con `Esquema inicial: completo`, la conexión y las tablas están listas. Si aparece un error de autenticación, revisa `PGUSER` y `PGPASSWORD`; si no encuentra la base de datos, revisa `PGDATABASE`; si faltan tablas, vuelve a ejecutar `database/schema.sql` desde el Query Tool de pgAdmin.
+## Crear la primera cuenta administradora
 
-## Ejecutar la API
+En el archivo local `.env`, agrega temporalmente las variables `ADMIN_NAME`, `ADMIN_EMAIL` y `ADMIN_PASSWORD`. Utiliza el nombre y correo que prefieras y una contraseña única de al menos 12 caracteres. No compartas esos valores ni los publiques en GitHub.
 
-Modo de desarrollo con reinicio al detectar cambios:
-
-```powershell
-npm run dev
-```
-
-Modo normal:
+Ejecuta:
 
 ```powershell
-npm start
+npm.cmd run admin:create
 ```
 
-## Endpoints iniciales
+El script crea una cuenta con rol `administrador` y guarda la contraseña como hash bcrypt. Si el correo ya existe, no lo sobrescribe. Tras crear la cuenta, elimina las tres variables temporales de `.env`; conserva `JWT_SECRET`.
 
-- `GET /api/health`: comprueba que la API responde.
-- `GET /api/health/db`: comprueba la conexión con PostgreSQL.
+## Iniciar la API
 
-Con el servidor activo, abre:
+```powershell
+npm.cmd run dev
+```
+
+Pruebas de salud:
 
 - http://localhost:3000/api/health
 - http://localhost:3000/api/health/db
 
-El segundo endpoint debe devolver estado HTTP 200 y `"baseDeDatos": "conectada"` cuando la base de datos y las variables de entorno estén configuradas correctamente. Si PostgreSQL no está disponible, devuelve HTTP 503.
+## Autenticación inicial
+
+`POST /api/auth/login` recibe un JSON con `correo` y `contrasena`. Si las credenciales son correctas, devuelve un token JWT y datos básicos del usuario. Para endpoints protegidos, el cliente enviará `Authorization: Bearer <token>`.
+
+El middleware valida el token y comprueba que la cuenta siga activa. La función `permitirRoles("administrador")` permite limitar las rutas administrativas a administradores.
 
 ## Estado
 
-La API ya cuenta con la estructura inicial y la comprobación de conexión/esquema. La autenticación, autorización por roles, gestión de trabajadores y rutas, y registro de recorridos se implementarán en las siguientes tareas. La prueba debe ejecutarse en el entorno local para confirmar las credenciales reales de PostgreSQL.
+Implementados: estructura inicial de Express, comprobación de PostgreSQL, inicio de sesión con JWT, hash de contraseñas y middleware de autenticación/autorización. Aún faltan los endpoints administrativos y las operaciones de recorridos.
