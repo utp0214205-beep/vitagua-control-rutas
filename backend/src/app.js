@@ -3,6 +3,8 @@ import cors from "cors";
 import helmet from "helmet";
 import { comprobarConexionDB } from "./config/db.js";
 import authRoutes from "./routes/auth.routes.js";
+import trabajadoresRoutes from "./routes/trabajadores.routes.js";
+import rutasRoutes from "./routes/rutas.routes.js";
 
 export const app = express();
 
@@ -14,6 +16,8 @@ app.use(cors({ origin: origenPermitido }));
 app.use(express.json({ limit: "100kb" }));
 
 app.use("/api/auth", authRoutes);
+app.use("/api/trabajadores", trabajadoresRoutes);
+app.use("/api/rutas", rutasRoutes);
 
 app.get("/api/health", (_req, res) => {
   res.status(200).json({
