@@ -15,7 +15,7 @@ export async function autenticar(req, res, next) {
   try {
     const payload = jwt.verify(token, process.env.JWT_SECRET);
     const resultado = await pool.query(
-      "SELECT id_usuario, nombre, correo, rol, activo FROM usuario WHERE id_usuario = $1",
+      "SELECT id_usuario, id_trabajador, nombre, correo, rol, activo FROM usuario WHERE id_usuario = $1",
       [payload.sub]
     );
     const usuario = resultado.rows[0];
@@ -28,7 +28,8 @@ export async function autenticar(req, res, next) {
       id_usuario: usuario.id_usuario,
       nombre: usuario.nombre,
       correo: usuario.correo,
-      rol: usuario.rol
+      rol: usuario.rol,
+      id_trabajador: usuario.id_trabajador
     };
     return next();
   } catch (error) {
