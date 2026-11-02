@@ -83,6 +83,36 @@ export async function crearTrabajador(req, res) {
   } finally { client.release(); }
 }
 
+
+export async function crearCuentaTrabajador(req, res) {
+  const id = Number(req.params.id);
+  const correo = typeof req.body?.correo === "string" ? req.body.correo.trim().toLowerCase() : "";
+  const contrasena = typeof req.body?.contrasena === "string" ? req.body.contrasena : "";
+  if (!Number.isSafeInteger(id) || id <= 0) return res.status(400).json({ mensaje: "El identificador del trabajador no es válido." });
+  if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(correo) || correo.length > 150) return res.status(400).json({ mensaje: "El correo de acceso no es válido." });
+  if (contrasena.length < 12) return res.status(400).json({ mensaje: "La contraseña inicial debe tener al menos 12 caracteres." });
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    const worker = await client.query(
+      "SELECT id_trabajador, nombre, apellido_paterno, apellido_materno, activo FROM trabajador WHERE id_trabajador = $1 FOR UPDATE",
+      [id]
+    );
+    if (!worker.rowCount) { await client.query("ROLLBACK"); return res.status(404).json({ mensaje: "Trabajador no encontrado." }); }
+    if (!worker.rows[0].activo) { await client.query("ROLLBACK"); return res.status(409).json({ mensaje: "No se puede crear acceso para un trabajador inactivo." }); }
+    const hash = await bcrypt.hash(contrasena, 12);
+    await client.query(
+      "INSERT INTO usuario (nombre, correo, contrasena_hash, rol, id_trabajador) VALUES ($1, $2, $3, 'operador', $4)",
+      [[worker.rows[0].nombre, worker.rows[0].apellido_paterno, worker.rows[0].apellido_materno].filter(Boolean).join(" "), correo, hash, id]
+    );
+    await client.query("COMMIT");
+    return res.status(201).json({ mensaje: "Cuenta de operador creada y vinculada correctamente." });
+  } catch (error) {
+    await client.query("ROLLBACK");
+    return errorSQL(error, res);
+  } finally { client.release(); }
+}
+
 export async function actualizarTrabajador(req, res) {
   const camposPermitidos = ["nombre", "apellido_paterno", "apellido_materno", "telefono"];
   const actualizaciones = [], valores = [];
