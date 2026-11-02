@@ -89,7 +89,7 @@ export async function crearCuentaTrabajador(req, res) {
   const correo = typeof req.body?.correo === "string" ? req.body.correo.trim().toLowerCase() : "";
   const contrasena = typeof req.body?.contrasena === "string" ? req.body.contrasena : "";
   if (!Number.isSafeInteger(id) || id <= 0) return res.status(400).json({ mensaje: "El identificador del trabajador no es válido." });
-  if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(correo) || correo.length > 150) return res.status(400).json({ mensaje: "El correo de acceso no es válido." });
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo) || correo.length > 150) return res.status(400).json({ mensaje: "El correo de acceso no es válido." });
   if (contrasena.length < 12) return res.status(400).json({ mensaje: "La contraseña inicial debe tener al menos 12 caracteres." });
   const client = await pool.connect();
   try {
