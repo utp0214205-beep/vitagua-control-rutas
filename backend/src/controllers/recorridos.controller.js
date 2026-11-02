@@ -71,7 +71,7 @@ export async function listarRecorridos(req, res) {
     condiciones.push(`rc.id_trabajador = $${valores.length}`);
   } else if (trabajadorId) {
     valores.push(trabajadorId);
-    condiciones.push(`rc.id_trabajador = ${valores.length}`);
+    condiciones.push(`rc.id_trabajador = $${valores.length}`);
   }
   if (rutaId) {
     valores.push(rutaId);
