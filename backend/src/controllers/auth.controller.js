@@ -15,7 +15,7 @@ export async function iniciarSesion(req, res) {
 
   try {
     const resultado = await pool.query(
-      "SELECT id_usuario, nombre, correo, contrasena_hash, rol, activo FROM usuario WHERE LOWER(correo) = $1 LIMIT 1",
+      "SELECT id_usuario, id_trabajador, nombre, correo, contrasena_hash, rol, activo FROM usuario WHERE LOWER(correo) = $1 LIMIT 1",
       [correo]
     );
     const usuario = resultado.rows[0];
@@ -38,7 +38,8 @@ export async function iniciarSesion(req, res) {
         id_usuario: usuario.id_usuario,
         nombre: usuario.nombre,
         correo: usuario.correo,
-        rol: usuario.rol
+        rol: usuario.rol,
+        id_trabajador: usuario.id_trabajador
       }
     });
   } catch (error) {
