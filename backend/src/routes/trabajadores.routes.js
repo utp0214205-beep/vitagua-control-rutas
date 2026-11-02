@@ -12,8 +12,8 @@ import {
 const router = Router();
 
 router.use(autenticar);
-router.get("/", listarTrabajadores);
-router.get("/:id", obtenerTrabajador);
+router.get("/", permitirRoles("administrador"), listarTrabajadores);
+router.get("/:id", permitirRoles("administrador"), obtenerTrabajador);
 router.post("/", permitirRoles("administrador"), crearTrabajador);
 router.patch("/:id", permitirRoles("administrador"), actualizarTrabajador);
 router.post("/:id/cuenta", permitirRoles("administrador"), crearCuentaTrabajador);
