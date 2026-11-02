@@ -27,6 +27,10 @@ CREATE TABLE IF NOT EXISTS trabajador (
     actualizado_en TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
+ALTER TABLE usuario
+    ADD COLUMN IF NOT EXISTS id_trabajador BIGINT UNIQUE
+    REFERENCES trabajador(id_trabajador) ON DELETE RESTRICT;
+
 CREATE TABLE IF NOT EXISTS ruta (
     id_ruta BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     nombre VARCHAR(100) NOT NULL UNIQUE,
@@ -60,6 +64,16 @@ CREATE TABLE IF NOT EXISTS recorrido (
             OR
             (fecha_regreso IS NOT NULL AND registrado_regreso_por IS NOT NULL)
         )
+);
+
+CREATE TABLE IF NOT EXISTS asignacion (
+    id_asignacion BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    id_trabajador BIGINT NOT NULL REFERENCES trabajador(id_trabajador) ON DELETE RESTRICT,
+    id_ruta BIGINT NOT NULL REFERENCES ruta(id_ruta) ON DELETE RESTRICT,
+    activa BOOLEAN NOT NULL DEFAULT TRUE,
+    creado_en TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    actualizado_en TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT uq_asignacion_trabajador_ruta UNIQUE (id_trabajador, id_ruta)
 );
 
 -- Impide que un trabajador tenga dos recorridos abiertos simultáneamente.
