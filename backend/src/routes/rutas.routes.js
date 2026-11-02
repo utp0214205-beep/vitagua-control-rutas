@@ -11,8 +11,8 @@ import {
 const router = Router();
 
 router.use(autenticar);
-router.get("/", listarRutas);
-router.get("/:id", obtenerRuta);
+router.get("/", permitirRoles("administrador"), listarRutas);
+router.get("/:id", permitirRoles("administrador"), obtenerRuta);
 router.post("/", permitirRoles("administrador"), crearRuta);
 router.patch("/:id", permitirRoles("administrador"), actualizarRuta);
 router.patch("/:id/estado", permitirRoles("administrador"), cambiarEstadoRuta);
