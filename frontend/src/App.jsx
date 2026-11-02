@@ -236,7 +236,7 @@ function Modal({modal,workers,routes,onClose,onSave}) {
   const update=(key,value)=>setForm(old=>({...old,[key]:value}));
   async function submit(e) {
     e.preventDefault(); setError("");
-    if((modal.type==="account" || modal.type==="worker") && form.crear_cuenta && form.contrasena!==form.confirmar_contrasena) return setError("Las contraseñas no coinciden.");
+    if((modal.type==="account" || (modal.type==="worker" && form.crear_cuenta)) && form.contrasena!==form.confirmar_contrasena) return setError("Las contraseñas no coinciden.");
     setBusy(true);
     try {
       let data;
