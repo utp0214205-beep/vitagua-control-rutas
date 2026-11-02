@@ -65,9 +65,13 @@ export async function listarRecorridos(req, res) {
     return res.status(400).json({ mensaje: "rutaId debe ser un entero positivo." });
   }
 
-  if (trabajadorId) {
+  if (req.usuario.rol === "operador") {
+    if (!req.usuario.id_trabajador) return res.status(403).json({ mensaje: "Tu cuenta no está vinculada a un trabajador." });
+    valores.push(req.usuario.id_trabajador);
+    condiciones.push(`rc.id_trabajador = ${valores.length}`);
+  } else if (trabajadorId) {
     valores.push(trabajadorId);
-    condiciones.push(`rc.id_trabajador = $${valores.length}`);
+    condiciones.push(`rc.id_trabajador = ${valores.length}`);
   }
   if (rutaId) {
     valores.push(rutaId);
@@ -125,12 +129,18 @@ export async function listarRecorridos(req, res) {
   }
 }
 
-export async function listarRecorridosAbiertos(_req, res) {
+export async function listarRecorridosAbiertos(req, res) {
   try {
+    if (req.usuario.rol === "operador" && !req.usuario.id_trabajador) {
+      return res.status(403).json({ mensaje: "Tu cuenta no está vinculada a un trabajador." });
+    }
+    const filtroPropio = req.usuario.rol === "operador" ? "AND rc.id_trabajador = $1" : "";
+    const parametros = req.usuario.rol === "operador" ? [req.usuario.id_trabajador] : [];
     const resultado = await pool.query(
       `${consultaBase}
-       WHERE rc.fecha_regreso IS NULL
-       ORDER BY rc.fecha_salida ASC`
+       WHERE rc.fecha_regreso IS NULL ${filtroPropio}
+       ORDER BY rc.fecha_salida ASC`,
+      parametros
     );
     return res.json({ recorridos: resultado.rows });
   } catch (error) {
@@ -144,8 +154,9 @@ export async function obtenerRecorrido(req, res) {
 
   try {
     const resultado = await pool.query(
-      `${consultaBase} WHERE rc.id_recorrido = $1`,
-      [id]
+      `${consultaBase} WHERE rc.id_recorrido = $1
+       AND ($2::bigint IS NULL OR rc.id_trabajador = $2)`,
+      [id, req.usuario.rol === "operador" ? req.usuario.id_trabajador : null]
     );
     if (!resultado.rowCount) {
       return res.status(404).json({ mensaje: "Recorrido no encontrado." });
@@ -157,7 +168,9 @@ export async function obtenerRecorrido(req, res) {
 }
 
 export async function registrarSalida(req, res) {
-  const trabajadorId = idPositivo(req.body?.id_trabajador);
+  if (req.usuario.rol !== "operador") return res.status(403).json({ mensaje: "Solo el trabajador puede registrar su propia salida." });
+  if (!req.usuario.id_trabajador) return res.status(403).json({ mensaje: "Tu cuenta no está vinculada a un trabajador." });
+  const trabajadorId = idPositivo(req.usuario.id_trabajador);
   const rutaId = idPositivo(req.body?.id_ruta);
   const observaciones = req.body?.observaciones == null
     ? null
@@ -178,9 +191,10 @@ export async function registrarSalida(req, res) {
   }
 
   try {
-    const [trabajador, ruta] = await Promise.all([
+    const [trabajador, ruta, asignacion] = await Promise.all([
       pool.query("SELECT id_trabajador FROM trabajador WHERE id_trabajador = $1 AND activo = TRUE", [trabajadorId]),
-      pool.query("SELECT id_ruta FROM ruta WHERE id_ruta = $1 AND activa = TRUE", [rutaId])
+      pool.query("SELECT id_ruta FROM ruta WHERE id_ruta = $1 AND activa = TRUE", [rutaId]),
+      pool.query("SELECT id_asignacion FROM asignacion WHERE id_trabajador = $1 AND id_ruta = $2 AND activa = TRUE", [trabajadorId, rutaId])
     ]);
 
     if (!trabajador.rowCount) {
@@ -189,6 +203,7 @@ export async function registrarSalida(req, res) {
     if (!ruta.rowCount) {
       return res.status(404).json({ mensaje: "La ruta no existe o está inactiva." });
     }
+    if (!asignacion.rowCount) return res.status(403).json({ mensaje: "No tienes asignada esta ruta o la asignación está inactiva." });
 
     const resultado = await pool.query(
       `INSERT INTO recorrido
@@ -208,6 +223,8 @@ export async function registrarSalida(req, res) {
 }
 
 export async function registrarRegreso(req, res) {
+  if (req.usuario.rol !== "operador") return res.status(403).json({ mensaje: "Solo el trabajador puede registrar su propio regreso." });
+  if (!req.usuario.id_trabajador) return res.status(403).json({ mensaje: "Tu cuenta no está vinculada a un trabajador." });
   const id = idPositivo(req.params.id);
   if (!id) return res.status(400).json({ mensaje: "El identificador del recorrido no es válido." });
 
@@ -216,17 +233,17 @@ export async function registrarRegreso(req, res) {
       `UPDATE recorrido
        SET fecha_regreso = CURRENT_TIMESTAMP,
            registrado_regreso_por = $1
-       WHERE id_recorrido = $2 AND fecha_regreso IS NULL
+       WHERE id_recorrido = $2 AND id_trabajador = $3 AND fecha_regreso IS NULL
        RETURNING id_recorrido, id_trabajador, id_ruta, fecha_salida, fecha_regreso,
                  registrado_salida_por, registrado_regreso_por, observaciones,
                  FLOOR(EXTRACT(EPOCH FROM (fecha_regreso - fecha_salida)))::BIGINT AS duracion_segundos`,
-      [req.usuario.id_usuario, id]
+      [req.usuario.id_usuario, id, req.usuario.id_trabajador]
     );
 
     if (!resultado.rowCount) {
       const existe = await pool.query(
-        "SELECT fecha_regreso FROM recorrido WHERE id_recorrido = $1",
-        [id]
+        "SELECT fecha_regreso FROM recorrido WHERE id_recorrido = $1 AND id_trabajador = $2",
+        [id, req.usuario.id_trabajador]
       );
       if (!existe.rowCount) {
         return res.status(404).json({ mensaje: "Recorrido no encontrado." });
