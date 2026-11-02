@@ -18,7 +18,6 @@ CREATE TABLE IF NOT EXISTS usuario (
 
 CREATE TABLE IF NOT EXISTS trabajador (
     id_trabajador BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    codigo VARCHAR(30) NOT NULL UNIQUE,
     nombre VARCHAR(80) NOT NULL,
     apellido_paterno VARCHAR(80) NOT NULL,
     apellido_materno VARCHAR(80),
