@@ -157,7 +157,7 @@ function App() {
         {error && <div className="alert alert-error page-alert">{error}<button onClick={()=>setError("")}>×</button></div>}
         {loading && <div className="loading-line"><span /> Actualizando información...</div>}
         {page==="dashboard" && <Dashboard workers={workers} routes={routes} trips={trips} openTrips={openTrips} todayTrips={todayTrips} completedToday={completedToday} setPage={setPage} />}
-        {page==="recorridos" && <Trips openTrips={openTrips} workers={workers} routes={routes} onReturn={id=>mutate(`/api/recorridos/${id}/regreso`,"PATCH",{})} onNew={()=>openModal("trip")} />}
+        {page==="recorridos" && <Trips openTrips={openTrips} workers={workers} routes={routes} onReturn={id=>mutate(`/api/recorridos/${id}/regreso`,"PATCH",{})} />}
         {page==="historial" && <History trips={visibleTrips} search={search} setSearch={setSearch} filter={filter} setFilter={setFilter} />}
         {page==="trabajadores" && <Workers rows={visibleWorkers} search={search} setSearch={setSearch} admin={admin} onEdit={w=>openModal("worker",w)} onToggle={w=>mutate(`/api/trabajadores/${w.id_trabajador}/estado`,"PATCH",{activo:!w.activo})} />}
         {page==="rutas" && <Routes rows={visibleRoutes} search={search} setSearch={setSearch} admin={admin} onEdit={r=>openModal("route",r)} onToggle={r=>mutate(`/api/rutas/${r.id_ruta}/estado`,"PATCH",{activa:!r.activa})} />}
@@ -194,8 +194,8 @@ function Stat({icon,label,value,detail,tone}) { return <div className="stat-card
 function Status({active}) { return <span className={`status-pill ${active?"status-open":"status-done"}`}><i />{active?"En curso":"Finalizado"}</span>; }
 function Empty({icon="⌕",title,text}) { return <div className="empty-state"><span>{icon}</span><strong>{title}</strong><p>{text}</p></div>; }
 
-function Trips({openTrips,workers,routes,onReturn,onNew}) {
-  return <div className="panel"><div className="panel-heading"><div><h3>Recorridos en curso</h3><p>{openTrips.length} trabajador(es) actualmente en ruta</p></div><button className="btn btn-primary btn-small" onClick={onNew}>＋ Registrar salida</button></div>
+function Trips({openTrips,workers,routes,onReturn}) {
+  return <div className="panel"><div className="panel-heading"><div><h3>Recorridos en curso</h3><p>{openTrips.length} trabajador(es) actualmente en ruta</p></div></div>
     {openTrips.length ? <div className="table-wrap"><table><thead><tr><th>TRABAJADOR</th><th>RUTA ASIGNADA</th><th>HORA DE SALIDA</th><th>TIEMPO TRANSCURRIDO</th><th>ACCIÓN</th></tr></thead><tbody>{openTrips.map(t=><tr key={t.id_recorrido}><td><strong>{t.nombre_trabajador} {t.apellido_paterno}</strong><small>ID: {t.id_trabajador}</small></td><td>{t.nombre_ruta}</td><td>{dateTime(t.fecha_salida)}</td><td><span className="elapsed">{duration(Math.floor((Date.now()-new Date(t.fecha_salida).getTime())/1000))}</span></td><td><button className="btn btn-return" onClick={()=>{if(confirm(`¿Registrar el regreso de ${t.nombre_trabajador}?`)) onReturn(t.id_recorrido);}}>Registrar regreso</button></td></tr>)}</tbody></table></div> : <Empty icon="✓" title="No hay recorridos activos" text="Cuando un trabajador salga a distribución, el recorrido aparecerá aquí." />}
   </div>;
 }
