@@ -149,6 +149,7 @@ export async function listarRecorridosAbiertos(req, res) {
 }
 
 export async function obtenerRecorrido(req, res) {
+  if (req.usuario.rol === "operador" && !req.usuario.id_trabajador) return res.status(403).json({ mensaje: "Tu cuenta no está vinculada a un trabajador." });
   const id = idPositivo(req.params.id);
   if (!id) return res.status(400).json({ mensaje: "El identificador del recorrido no es válido." });
 
@@ -180,7 +181,7 @@ export async function registrarSalida(req, res) {
 
   if (!trabajadorId || !rutaId) {
     return res.status(400).json({
-      mensaje: "id_trabajador e id_ruta deben ser enteros positivos."
+      mensaje: "La ruta debe ser un entero positivo."
     });
   }
   if (observaciones === undefined) {
