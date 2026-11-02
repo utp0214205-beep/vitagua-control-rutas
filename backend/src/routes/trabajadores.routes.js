@@ -5,7 +5,8 @@ import {
   obtenerTrabajador,
   crearTrabajador,
   actualizarTrabajador,
-  cambiarEstadoTrabajador
+  cambiarEstadoTrabajador,
+  crearCuentaTrabajador
 } from "../controllers/trabajadores.controller.js";
 
 const router = Router();
@@ -15,6 +16,7 @@ router.get("/", listarTrabajadores);
 router.get("/:id", obtenerTrabajador);
 router.post("/", permitirRoles("administrador"), crearTrabajador);
 router.patch("/:id", permitirRoles("administrador"), actualizarTrabajador);
+router.post("/:id/cuenta", permitirRoles("administrador"), crearCuentaTrabajador);
 router.patch("/:id/estado", permitirRoles("administrador"), cambiarEstadoTrabajador);
 
 export default router;
