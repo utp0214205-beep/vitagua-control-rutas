@@ -111,8 +111,8 @@ function App() {
         request("/api/recorridos?limite=100&pagina=1", { token }),
         request("/api/recorridos/abiertos", { token })
       ]);
-      setWorkers(w.trabajadores || []); setRoutes(r.rutas || []);
-      setAssignments(a.asignaciones || []);
+      setWorkers(w.trabajadores || []); setAssignments(a.asignaciones || []);
+      setRoutes(admin ? (r.rutas || []) : (a.asignaciones || []));
       setTrips(t.recorridos || []); setOpenTrips(o.recorridos || []);
     } catch (err) {
       if (/token|autoriz|sesión/i.test(err.message)) logout();
