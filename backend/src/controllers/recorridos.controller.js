@@ -68,7 +68,7 @@ export async function listarRecorridos(req, res) {
   if (req.usuario.rol === "operador") {
     if (!req.usuario.id_trabajador) return res.status(403).json({ mensaje: "Tu cuenta no está vinculada a un trabajador." });
     valores.push(req.usuario.id_trabajador);
-    condiciones.push(`rc.id_trabajador = ${valores.length}`);
+    condiciones.push(`rc.id_trabajador = $${valores.length}`);
   } else if (trabajadorId) {
     valores.push(trabajadorId);
     condiciones.push(`rc.id_trabajador = ${valores.length}`);
