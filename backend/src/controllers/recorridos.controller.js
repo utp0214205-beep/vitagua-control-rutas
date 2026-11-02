@@ -33,7 +33,6 @@ const consultaBase = `
       ELSE FLOOR(EXTRACT(EPOCH FROM (rc.fecha_regreso - rc.fecha_salida)))::BIGINT
     END AS duracion_segundos,
     tr.id_trabajador,
-    tr.codigo AS codigo_trabajador,
     tr.nombre AS nombre_trabajador,
     tr.apellido_paterno,
     tr.apellido_materno,
