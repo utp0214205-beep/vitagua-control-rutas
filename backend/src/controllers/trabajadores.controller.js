@@ -142,6 +142,10 @@ export async function cambiarEstadoTrabajador(req, res) {
   const activo = req.body?.activo;
   if (typeof activo !== "boolean") return res.status(400).json({ mensaje: "El campo activo debe ser true o false." });
   try {
+    if (!activo) {
+      const abierto = await pool.query("SELECT 1 FROM recorrido WHERE id_trabajador = $1 AND fecha_regreso IS NULL LIMIT 1", [req.params.id]);
+      if (abierto.rowCount) return res.status(409).json({ mensaje: "No puedes desactivar a un trabajador que tiene un recorrido en curso." });
+    }
     const resultado = await pool.query(
       `UPDATE trabajador SET activo = $1, actualizado_en = CURRENT_TIMESTAMP
        WHERE id_trabajador = $2
@@ -149,7 +153,7 @@ export async function cambiarEstadoTrabajador(req, res) {
       [activo, req.params.id]
     );
     if (!resultado.rowCount) return res.status(404).json({ mensaje: "Trabajador no encontrado." });
-    if (!activo) await pool.query("UPDATE usuario SET activo = FALSE, actualizado_en = CURRENT_TIMESTAMP WHERE id_trabajador = $1", [req.params.id]);
+    await pool.query("UPDATE usuario SET activo = $1, actualizado_en = CURRENT_TIMESTAMP WHERE id_trabajador = $2", [activo, req.params.id]);
     return res.json({ mensaje: activo ? "Trabajador activado. La cuenta conserva su estado previo." : "Trabajador desactivado y acceso bloqueado.", trabajador: resultado.rows[0] });
   } catch (error) { return errorSQL(error, res); }
 }
