@@ -22,7 +22,7 @@ export async function listarTrabajadores(req, res) {
        FROM trabajador tr
        LEFT JOIN usuario us ON us.id_trabajador = tr.id_trabajador
        ${incluirInactivos ? "" : "WHERE tr.activo = TRUE"}
-       ORDER BY tr.activo DESC, tr.apellido_paterno, tr.apellido_materno NULLS LAST, tr.nombre`
+       ORDER BY tr.id_trabajador ASC`
     );
     return res.json({ trabajadores: resultado.rows });
   } catch (error) { return errorSQL(error, res); }
